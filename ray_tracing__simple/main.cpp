@@ -120,8 +120,12 @@ int main(int argc, char** argv)
   contextInfo.setVersion(1, 2);                       // Using Vulkan 1.2
   for(uint32_t ext_id = 0; ext_id < count; ext_id++)  // Adding required extensions (surface, win32, linux, ..)
     contextInfo.addInstanceExtension(reqExtensions[ext_id]);
-  contextInfo.addInstanceLayer("VK_LAYER_LUNARG_monitor", true);              // FPS in titlebar
   contextInfo.addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, true);  // Allow debug names
+  contextInfo.addInstanceExtension("VK_EXT_validation_features", true);
+
+  contextInfo.addInstanceLayer("VK_LAYER_LUNARG_monitor", true);              // FPS in titlebar
+  contextInfo.addInstanceLayer("VK_LAYER_KHRONOS_validation", false);              // FPS in titlebar
+
   contextInfo.addDeviceExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);            // Enabling ability to present rendering
 
   // #VKRay: Activate the ray tracing extension
@@ -130,6 +134,17 @@ int main(int argc, char** argv)
   VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeature{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR};
   contextInfo.addDeviceExtension(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME, false, &rtPipelineFeature);  // To use vkCmdTraceRaysKHR
   contextInfo.addDeviceExtension(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);  // Required by ray tracing pipeline
+
+  VkValidationFeatureEnableEXT enabled_validation_features[] = {VkValidationFeatureEnableEXT::VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT, VkValidationFeatureEnableEXT::VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
+  auto validation_features = VkValidationFeaturesEXT {
+      VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+      nullptr,
+      2,
+      enabled_validation_features,
+      0,
+      nullptr
+  };
+  contextInfo.instanceCreateInfoExt = &validation_features;
 
   // Creating Vulkan base application
   nvvk::Context vkctx{};
